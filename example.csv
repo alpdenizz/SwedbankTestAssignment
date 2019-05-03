@@ -1,0 +1,3 @@
+FuelType;PricePerLitter;Volume;Date;DriverID
+Diesel;1.5;100;2019-04-01T11:00:00;driver001
+98;2;50;2019-04-01T13:30:00;driver002
