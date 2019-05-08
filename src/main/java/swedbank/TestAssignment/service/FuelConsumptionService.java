@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -32,15 +31,31 @@ public class FuelConsumptionService {
 	@Autowired
 	private FuelConsumptionRepository repo;
 	
+	/**
+	 * 
+	 * @param fc FuelConsumption with valid fields
+	 * @return registered fuel consumption
+	 */
 	public FuelConsumption addFuelConsumption(@Valid FuelConsumption fc) {
 		//System.out.println("Trying to add fc");
 		return repo.save(fc);
 	}
 	
+	/**
+	 * 
+	 * @param list of fuel consumptions where each element must be valid
+	 * @return registered fuel consumptions
+	 */
 	public List<FuelConsumption> addFuelConsumptionList(List<FuelConsumption> list) {
 		return repo.saveAll(list);
 	}
 	
+	/**
+	 * 
+	 * @param fc fuel consumption
+	 * @return true if fc valid otherwise false
+	 * @throws Exception with message why this fc is not valid
+	 */
 	public boolean isValidObject(FuelConsumption fc) throws Exception {
 		if(fc.getDate() == null) throw new Exception("Date must not be null");
 		if(fc.getDriverID() == null || fc.getDriverID().trim().isEmpty()) throw new Exception("Driver ID must not be empty");
@@ -50,6 +65,14 @@ public class FuelConsumptionService {
 		return true;
 	}
 	
+	/**
+	 * 
+	 * @param s Scanner object with constructed a csv file where separator is ";"
+	 * @return message string stating result of the operation<br>
+	 * Successful - if the operation is successful<br>
+	 * Column size mismatch - if attribute column number is not equal to values column number<br>
+	 * Row column error - if the entered field for fuel consumption is not valid
+	 */
 	public String addFuelConsumptionsFromCsvFile(Scanner s) {
 		String[] columns = null;
 		int row = 0;
@@ -104,31 +127,51 @@ public class FuelConsumptionService {
 		addFuelConsumptionList(list);
 		return "Successful";
 	}
-	
+	/**
+	 * @see FuelConsumptionRepository
+	 */
 	public List<FuelConsumption> findAllByMonth(int month) {
 		return repo.findAllByMonth(month);
 	}
 	
+	/**
+	 * @see FuelConsumptionRepository
+	 */
 	public List<FuelConsumption> findAllByMonthForSingleDriver(int month, String driverID) {
 		return repo.findAllByMonthForSingleDriver(month,driverID);
 	}
 	
+	/**
+	 * @see FuelConsumptionRepository
+	 */
 	public List<TotalSpentMoneyByMonth> findTotalPricesGroupedByMonth() {
 		return repo.findTotalPricesGroupedByMonth();
 	}
 	
+	/**
+	 * @see FuelConsumptionRepository
+	 */
 	public List<TotalSpentMoneyByMonth> findTotalPricesGroupedByMonthForSingleDriver(String driverID) {
 		return repo.findTotalPricesGroupedByMonthForSingleDriver(driverID);
 	}
 	
+	/**
+	 * @see FuelConsumptionRepository
+	 */
 	public List<StatByMonthAndFuelType> getStatisticsGroupedByFuelType() {
 		return repo.getStatisticsGroupedByFuelType();
 	}
 	
+	/**
+	 * @see FuelConsumptionRepository
+	 */
 	public List<StatByMonthAndFuelType> getStatisticsGroupedByFuelTypeForSingleDriver(String driverID) {
 		return repo.getStatisticsGroupedByFuelTypeForSingleDriver(driverID);
 	}
 	
+	/**
+	 * @see FuelConsumptionRepository
+	 */
 	public List<FuelConsumption> getAllFuelConsumptions() {
 		return repo.findAll();
 	}

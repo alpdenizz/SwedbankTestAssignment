@@ -4,10 +4,9 @@ package swedbank.TestAssignment.service;
 import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
-
-import javax.validation.Validator;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,19 +46,22 @@ public class FuelConsumptionServiceTest {
 	
 	private FuelConsumption fc4;
 	
+	/**
+	 * Initialize some fuel consumptions for each test case
+	 */
 	@Before
 	public void insertData() {
 		fc1 = new FuelConsumption("Diesel",new BigDecimal(2),BigDecimal.TEN,
-				LocalDateTime.now().minusDays(6),"driver001");
+				LocalDateTime.parse("2019-04-01T11:00:00",DateTimeFormatter.ISO_DATE_TIME),"driver001");
 		
 		fc2 = new FuelConsumption("Diesel",BigDecimal.ONE,BigDecimal.TEN,
-				LocalDateTime.now().minusDays(8),"driver002");
+				LocalDateTime.parse("2019-04-02T11:00:00",DateTimeFormatter.ISO_DATE_TIME),"driver002");
 		
 		fc3 = new FuelConsumption("Diesel",BigDecimal.ONE,BigDecimal.TEN,
-				LocalDateTime.now(),"driver003");
+				LocalDateTime.parse("2019-05-03T11:00:00",DateTimeFormatter.ISO_DATE_TIME),"driver003");
 		
 		fc4 = new FuelConsumption("Diesel2",BigDecimal.ONE,BigDecimal.TEN,
-				LocalDateTime.now(),"driver001");
+				LocalDateTime.parse("2019-05-04T11:00:00",DateTimeFormatter.ISO_DATE_TIME),"driver001");
 	}
 	
 	/**
@@ -70,6 +72,19 @@ public class FuelConsumptionServiceTest {
 		repository.deleteAll();
 	}
 	
+	/**
+	 * Check if autowired beans are loaded successfully
+	 */
+	@Test
+	public void test_beansNotNull() {
+		assertThat(service).isNotNull();
+		assertThat(repository).isNotNull();
+	}
+	
+	/**
+	 * Tested fuel consumption is not valid because driverID field is blank
+	 * @see FuelConsumptionService#isValidObject(FuelConsumption)
+	 */
 	@Test
 	public void test_validatorSuccessful() {
 		FuelConsumption fc = new FuelConsumption();
@@ -88,6 +103,15 @@ public class FuelConsumptionServiceTest {
 		assertThat(isValid).isFalse();
 	}
 	
+	/**
+	 * Check FuelConsumption fc1 and fc2 are registered successfully
+	 * <ul>
+	 * <li>Table size must increase by 2</li>
+	 * <li>Registered fuel consumptions must not be null and 
+	 * 	must have a valid identifier</li>
+	 * </ul>
+	 * @see FuelConsumptionService#addFuelConsumption(FuelConsumption)
+	 */
 	@Test
 	public void test_InsertionSuccessful() {
 		int before = service.getAllFuelConsumptions().size();
@@ -102,6 +126,14 @@ public class FuelConsumptionServiceTest {
 		assertThat(inserted2.getId()).isNotNull();
 	}
 	
+	/**
+	 * Check Fuel consumption fc with empty fields is not inserted in the table
+	 * <ul>
+	 * <li>Call must throw an exception</li>
+	 * <li>That exception must be catched successfully and error flag must change</li>
+	 * </ul>
+	 * @see FuelConsumptionService#addFuelConsumption(FuelConsumption)
+	 */
 	@Test
 	public void test_insertionNotSuccessful() {
 		FuelConsumption fc = new FuelConsumption();
@@ -118,6 +150,15 @@ public class FuelConsumptionServiceTest {
 		assertThat(error).isTrue();
 	}
 	
+	/**
+	 * Check fuel consumptions from "example.csv" are inserted successfully
+	 * <ul>
+	 * <li>Table size must increase by 2</li>
+	 * <li>Insertion must be according to the order in "example.csv"
+	 * </ul>
+	 * @throws Exception
+	 * @see FuelConsumptionService#addFuelConsumptionsFromCsvFile(Scanner)
+	 */
 	@Test
 	public void test_insertFromFileSuccessful() throws Exception {
 		int before = service.getAllFuelConsumptions().size();
@@ -134,6 +175,15 @@ public class FuelConsumptionServiceTest {
 		
 	}
 	
+	/**
+	 * Check insertion from "bad1.csv" is not successful because
+	 * in second row driverID column is empty
+	 * <ul>
+	 * <li>Result message must state the expected error</li>
+	 * <li>There must be no change in FuelConsumption table</li>
+	 * </ul>
+	 * @throws Exception
+	 */
 	@Test
 	public void test_insertFromFileNotSuccessful() throws Exception {
 		int before = service.getAllFuelConsumptions().size();
@@ -148,6 +198,18 @@ public class FuelConsumptionServiceTest {
 		
 	}
 	
+	/**
+	 * Check if fuel consumptions are retrieved successfully by month<br>
+	 * Initially three fuel consumptions are registered where two of them
+	 * has month value 4 and one has month value 5
+	 * <ul>
+	 * <li>Initial loading must be successful</li>
+	 * <li>Query result must include elements with month 4 only</li>
+	 * </ul>
+	 * 
+	 * @see FuelConsumptionService#findAllByMonth(int)
+	 * @see FuelConsumptionServiceTest#insertData()
+	 */
 	@Test
 	public void test_FindByMonthSuccessful() {
 		int before = service.getAllFuelConsumptions().size();
@@ -164,6 +226,17 @@ public class FuelConsumptionServiceTest {
 		assertThat(result).doesNotContain(inserted3);
 	}
 	
+	/**
+	 * Check if fuel consumptions are retrieved successfully by month and driverID<br>
+	 * Initially three fuel consumptions are registered with different driverID
+	 * <ul>
+	 * <li>Initial loading must be successful</li>
+	 * <li>Query result must include elements with month 4 and driverID "driver001" only</li>
+	 * </ul>
+	 * 
+	 * @see FuelConsumptionService#findAllByMonthForSingleDriver(int, String)
+	 * @see FuelConsumptionServiceTest#insertData()
+	 */
 	@Test
 	public void test_FindByMonthForSingleDriverSuccessful() {
 		int before = service.getAllFuelConsumptions().size();
@@ -180,7 +253,18 @@ public class FuelConsumptionServiceTest {
 		assertThat(result).doesNotContain(inserted2,inserted3);
 	}
 	
-	
+	/**
+	 * Check if total prices grouped by month are retrieved successfully
+	 * Initially three fuel consumptions are registered
+	 * <ul>
+	 * <li>Initial loading must be successful</li>
+	 * <li>Query result must include two elements: one with month 4 and one with month 5</li>
+	 * <li>Query result must also include the true total price for each element</li>
+	 * </ul>
+	 * 
+	 * @see FuelConsumptionService#findTotalPricesGroupedByMonth()
+	 * @see FuelConsumptionServiceTest#insertData()
+	 */
 	@Test
 	public void test_findTotalPricesGroupedByMonthSuccessful() {
 		int before = service.getAllFuelConsumptions().size();
@@ -195,16 +279,29 @@ public class FuelConsumptionServiceTest {
 		
 		assertThat(result).hasSize(2);
 		assertThat(result.get(0).getMonth()).isEqualTo(4);
+		assertThat(result.get(0).getTotalMoneySpent()).isEqualTo(inserted1.getTotalPrice().add(inserted2.getTotalPrice()).setScale(2));
 		assertThat(result.get(1).getMonth()).isEqualTo(5);
+		assertThat(result.get(1).getTotalMoneySpent()).isEqualTo(inserted3.getTotalPrice().setScale(2));
 		
 	}
 	
+	/**
+	 * Check if total prices grouped by month are retrieved successfully for driverID<br>
+	 * Initially three fuel consumptions are registered
+	 * <ul>
+	 * <li>Initial loading must be successful</li>
+	 * <li>Query result must include one element with month 4 and true total price</li>
+	 * </ul>
+	 * 
+	 * @see FuelConsumptionService#findTotalPricesGroupedByMonthForSingleDriver(String)
+	 * @see FuelConsumptionServiceTest#insertData()
+	 */
 	@Test
 	public void test_findTotalPricesGroupedByMonthForSingleDriverSuccessful() {
 		int before = service.getAllFuelConsumptions().size();
 		FuelConsumption inserted1 = service.addFuelConsumption(fc1);
-		FuelConsumption inserted2 = service.addFuelConsumption(fc2);
-		FuelConsumption inserted3 = service.addFuelConsumption(fc3);
+		service.addFuelConsumption(fc2);
+		service.addFuelConsumption(fc3);
 		int after = service.getAllFuelConsumptions().size();
 		
 		assertThat(after-before).isEqualTo(3);
@@ -213,16 +310,30 @@ public class FuelConsumptionServiceTest {
 		
 		assertThat(result).hasSize(1);
 		assertThat(result.get(0).getMonth()).isEqualTo(4);
+		assertThat(result.get(0).getTotalMoneySpent()).isEqualTo(inserted1.getTotalPrice().setScale(2));
 		
 	}
 	
+	/**
+	 * Check if statistics grouped by fuel type for each month is retrieved successfully<br>
+	 * Initially four fuel consumptions are registered
+	 * <ul>
+	 * <li>Initial loading must be successful</li>
+	 * <li>Query result must include three elements: one with month 4 and two with month 5</li>
+	 * <li>Result element with month 4 must include true average of price per litter</li>
+	 * <li>Result elements with month 5 must be one with fuel type "Diesel" and one with fuel type "Diesel2"</li>
+	 * </ul>
+	 * 
+	 * @see FuelConsumptionService#getStatisticsGroupedByFuelType()
+	 * @see FuelConsumptionServiceTest#insertData()
+	 */
 	@Test
 	public void test_getStatisticsGroupedByFuelTypeSuccessful() {
 		int before = service.getAllFuelConsumptions().size();
-		FuelConsumption inserted1 = service.addFuelConsumption(fc1);
-		FuelConsumption inserted2 = service.addFuelConsumption(fc2);
-		FuelConsumption inserted3 = service.addFuelConsumption(fc3);
-		FuelConsumption inserted4 = service.addFuelConsumption(fc4);
+		service.addFuelConsumption(fc1);
+		service.addFuelConsumption(fc2);
+		service.addFuelConsumption(fc3);
+		service.addFuelConsumption(fc4);
 		int after = service.getAllFuelConsumptions().size();
 		
 		assertThat(after-before).isEqualTo(4);
@@ -236,13 +347,26 @@ public class FuelConsumptionServiceTest {
 		assertThat(result.get(2).getFuelType()).isEqualTo("Diesel2");
 	}
 	
+	/**
+	 * Check if statistics grouped by fuel type for each month is retrieved successfully for driverID<br>
+	 * Initially four fuel consumptions are registered
+	 * <ul>
+	 * <li>Initial loading must be successful</li>
+	 * <li>Query result must include two elements: one with month 4 and one with month 5</li>
+	 * <li>Result element with month 4 must include true average of price per litter</li>
+	 * <li>Result element with month 5 must be with fuel type "Diesel2"</li>
+	 * </ul>
+	 * 
+	 * @see FuelConsumptionService#getStatisticsGroupedByFuelTypeForSingleDriver(String)
+	 * @see FuelConsumptionServiceTest#insertData()
+	 */
 	@Test
 	public void test_getStatisticsGroupedByFuelTypeForSingleDriverSuccessful() {
 		int before = service.getAllFuelConsumptions().size();
-		FuelConsumption inserted1 = service.addFuelConsumption(fc1);
-		FuelConsumption inserted2 = service.addFuelConsumption(fc2);
-		FuelConsumption inserted3 = service.addFuelConsumption(fc3);
-		FuelConsumption inserted4 = service.addFuelConsumption(fc4);
+		service.addFuelConsumption(fc1);
+		service.addFuelConsumption(fc2);
+		service.addFuelConsumption(fc3);
+		service.addFuelConsumption(fc4);
 		int after = service.getAllFuelConsumptions().size();
 		
 		assertThat(after-before).isEqualTo(4);

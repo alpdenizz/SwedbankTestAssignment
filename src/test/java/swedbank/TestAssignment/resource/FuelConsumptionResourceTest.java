@@ -16,13 +16,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.hamcrest.Matchers.*;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -65,6 +63,28 @@ public class FuelConsumptionResourceTest {
 		repository.deleteAll();
 	}
 	
+	/**
+	 * Check if autowired beans are loaded successfully
+	 */
+	@Test
+	public void test_beansNotNull() {
+		assertThat(mvc).isNotNull();
+		assertThat(service).isNotNull();
+		assertThat(repository).isNotNull();
+		assertThat(om).isNotNull();
+	}
+	
+	/**
+	 * Check POST request with valid fuel consumption request body succeeded
+	 * <ul>
+	 * <li>Response status must be OK(200)</li>
+	 * <li>Response JSON must have mapping "fuelType": "Diesel"</li>
+	 * <li>Response JSON must have mapping "driverID": "driver001"</li>
+	 * <li>Table size must increase by 1</li>
+	 * </ul>
+	 * @throws Exception
+	 * @see FuelConsumptionResource#registerConsumption(FuelConsumption)
+	 */
 	@Test
 	public void test_insertionSuccessful() throws Exception {
 		int before = service.getAllFuelConsumptions().size();
@@ -87,6 +107,15 @@ public class FuelConsumptionResourceTest {
 		assertThat(after-before).isEqualTo(1);
 	}
 	
+	/**
+	 * Check POST request with csv file succeeded
+	 * <ul>
+	 * <li>Response status must be OK(200)</li>
+	 * <li>Table size must increase by 2</li>
+	 * </ul>
+	 * @throws Exception
+	 * @see FuelConsumptionResource#registerFromFile(org.springframework.web.multipart.MultipartFile)
+	 */
 	@Test
 	public void test_insertionFromFileSuccessful() throws Exception{
 		int before = service.getAllFuelConsumptions().size();
@@ -104,6 +133,12 @@ public class FuelConsumptionResourceTest {
 		assertThat(after-before).isEqualTo(2);
 	}
 	
+	/**
+	 * Check GET request to retrieve total spent money by month succeeded both with
+	 * driverID and without<br>
+	 * Response JSON must include the true query results
+	 * @throws Exception
+	 */
 	@Test
 	public void test_totalSpentMoneyByMonth() throws Exception{
 		StringBuilder sb = new StringBuilder();
@@ -132,6 +167,12 @@ public class FuelConsumptionResourceTest {
 	
 	}
 	
+	/**
+	 * Check GET request to retrieve consumptions by month succeeded both with
+	 * driverID and without<br>
+	 * Response JSON must include the true query results
+	 * @throws Exception
+	 */
 	@Test
 	public void test_getConsumptionsForMonth() throws Exception {
 		StringBuilder sb = new StringBuilder();
@@ -195,6 +236,13 @@ public class FuelConsumptionResourceTest {
 		.andExpect(content().json("["+om.writeValueAsString(fc2)+"]"));
 	}
 	
+	/**
+	 * Check GET request to retrieve statistics grouped by fuel type
+	 * for each month succeeded both with
+	 * driverID and without<br>
+	 * Response JSON must include the true query results
+	 * @throws Exception
+	 */
 	@Test
 	public void test_statsByFuelType() throws Exception {
 		StringBuilder sb = new StringBuilder();

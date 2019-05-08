@@ -2,6 +2,11 @@ package swedbank.TestAssignment.repository;
 
 import java.math.BigDecimal;
 
+/**
+ * 
+ * @author denizalp@ut.ee
+ * @see FuelConsumptionRepository
+ */
 public class TotalSpentMoneyByMonth {
 	
 	private int month;

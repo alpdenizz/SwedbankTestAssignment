@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 
 /**
  * 
- * @author denizalp
- * <p>This is the class to hold the statistic results by fuel type</p>
+ * @author denizalp@ut.ee
+ * @see FuelConsumptionRepository
  */
 public class StatByMonthAndFuelType {
 	
